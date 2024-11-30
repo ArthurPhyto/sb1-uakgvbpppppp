@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Domain Crawler Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #ff7a59;
+            --primary-dark: #e66e50;
+            --secondary: #516f90;
+            --text: #33475b;
+            --text-light: #516f90;
+            --background: #f5f8fa;
+            --white: #ffffff;
+            --success: #00bda5;
+            --warning: #ffd012;
+            --error: #f2545b;
+            --gray-100: #f8f9fa;
+            --gray-200: #edf2f7;
+            --gray-300: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: var(--white);
+            padding: 1.5rem 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        input[type="url"] {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        input[type="url"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(255,122,89,0.2);
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .stat-card h3 {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .panels-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .panel {
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 1rem 1.5rem;
+            background: var(--gray-100);
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .panel-header h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .url-list {
+            height: 400px;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .url-item {
+            padding: 0.75rem;
+            border-radius: 4px;
+            background: var(--gray-100);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            word-break: break-all;
+        }
+
+        .url-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .url-item.external-site {
+            background: var(--gray-100);
+            border-left: 4px solid var(--secondary);
+        }
+
+        .url-item.expired-domain {
+            background: #fff5f5;
+            border-left: 4px solid var(--error);
+        }
+
+        .url-item.error {
+            background: #fff5f5;
+            border-left: 4px solid var(--error);
+            color: var(--error);
+        }
+
+        .source-url {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 0.5rem;
+            padding-left: 1rem;
+            border-left: 2px solid var(--gray-300);
+        }
+
+        .loading {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-light);
+        }
+
+        .loading.active {
+            display: flex;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading i {
+            animation: spin 1s linear infinite;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .panels-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>Domain Crawler Pro</h1>
+            <p class="subtitle">Analysez et découvrez les domaines expirés en quelques clics</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="input-group">
+            <input type="url" id="urlInput" placeholder="Entrez l'URL du site à analyser" required>
+            <button onclick="startCrawling()">
+                <i class="fas fa-search"></i>
+                Démarrer l'analyse
+            </button>
+            <div class="loading" id="loadingIndicator">
+                <i class="fas fa-spinner"></i>
+                Analyse en cours...
+            </div>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <h3>URLs Crawlées</h3>
+                <div class="stat-value" id="crawledCount">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Sites Externes</h3>
+                <div class="stat-value" id="externalCount">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Erreurs</h3>
+                <div class="stat-value" id="errorCount">0</div>
+            </div>
+        </div>
+
+        <div class="panels-container">
+            <div class="panel">
+                <div class="panel-header">
+                    <i class="fas fa-link"></i>
+                    <h2>URLs Crawlées</h2>
+                </div>
+                <div id="crawledUrls" class="url-list"></div>
+            </div>
+            
+            <div class="panel">
+                <div class="panel-header">
+                    <i class="fas fa-globe"></i>
+                    <h2>Sites Externes</h2>
+                </div>
+                <div id="externalSites" class="url-list"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        
+        function startCrawling() {
+            const url = document.getElementById('urlInput').value;
+            if (!url) {
+                alert('Veuillez entrer une URL valide');
+                return;
+            }
+            
+            // Réinitialiser l'interface
+            document.getElementById('crawledUrls').innerHTML = '';
+            document.getElementById('externalSites').innerHTML = '';
+            document.getElementById('crawledCount').textContent = '0';
+            document.getElementById('externalCount').textContent = '0';
+            document.getElementById('errorCount').textContent = '0';
+            
+            // Afficher l'indicateur de chargement
+            loadingIndicator.classList.add('active');
+            
+            socket.emit('start-crawl', url);
+        }
+
+        socket.on('url-crawled', (url) => {
+            const div = document.createElement('div');
+            div.className = 'url-item';
+            div.textContent = url;
+            document.getElementById('crawledUrls').appendChild(div);
+            div.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        socket.on('expired-domain', (domain) => {
+            const div = document.createElement('div');
+            div.className = 'url-item expired-domain';
+            div.innerHTML = `
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Domaine expiré:</strong> ${domain}
+            `;
+            document.getElementById('externalSites').appendChild(div);
+            div.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        socket.on('external-site', (data) => {
+            const div = document.createElement('div');
+            div.className = 'url-item external-site';
+            div.innerHTML = `
+                <div><i class="fas fa-external-link-alt"></i> ${data.domain}</div>
+                <div>${data.url}</div>
+                ${data.sourceUrl ? `<div class="source-url">Source: ${data.sourceUrl}</div>` : ''}
+            `;
+            document.getElementById('externalSites').appendChild(div);
+        });
+
+        socket.on('crawl-error', (error) => {
+            const div = document.createElement('div');
+            div.className = 'url-item error';
+            div.innerHTML = `
+                <i class="fas fa-exclamation-circle"></i>
+                <strong>${error.url}:</strong> ${error.error}
+            `;
+            document.getElementById('externalSites').appendChild(div);
+        });
+
+        socket.on('crawl-stats', (stats) => {
+            document.getElementById('crawledCount').textContent = stats.crawledCount;
+            document.getElementById('externalCount').textContent = stats.externalCount;
+            document.getElementById('errorCount').textContent = stats.errorCount || 0;
+        });
+
+        socket.on('error', (message) => {
+            alert(`Erreur: ${message}`);
+            loadingIndicator.classList.remove('active');
+        });
+
+        // Masquer l'indicateur de chargement quand le crawl est terminé
+        socket.on('crawl-complete', () => {
+            loadingIndicator.classList.remove('active');
+        });
+    </script>
+</body>
+</html>
